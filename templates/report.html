@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Workout and Goal Report{% endblock %}
+{% block content %}
+<h1 align="center">Workout and Goal Progress Report</h1>
+
+<!-- Workout Report -->
+<h2>Workout Report</h2>
+<img src="{{ url_for('static', filename='workout_report.png') }}" alt="Workout Report" class="img-fluid" />
+
+<!-- Goal Progress Report -->
+<h2>Goal Progress Report</h2>
+<img src="{{ url_for('static', filename='goal_report.png') }}" alt="Goal Progress Report" class="img-fluid" />
+
+<!-- Back to Home Button -->
+<a href="{{ url_for('views.home') }}" class="btn btn-secondary">Back to Home</a>
+{% endblock %}
