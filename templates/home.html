@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<h1 align="center">Exercise Tracker</h1>
+<h1 style="text-align: center;">Exercise Tracker</h1>  <!-- Inline CSS for centering -->
 <ul class="list-group list-group-flush">
   {% for workout in workouts %}
     <li class="list-group-item">
