@@ -1,6 +1,4 @@
 Flask==2.3.3  # Latest stable version as of now
-Flask-SQLAlchemy==3.0.0  # Latest stable version
 Flask-Login==0.6.2  # Latest version
 Werkzeug==2.3.7  # Latest stable version
-SQLAlchemy==1.4.49  # Pinning to a compatible version
 matplotlib==3.8.0  # Latest version
