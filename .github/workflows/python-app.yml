@@ -63,7 +63,7 @@ jobs:
           sudo docker push $DOCKER_REPOSITORY:latest
 
           # Run Docker container
-          sudo docker stop aryan4117/fitness-app || true
-          sudo docker rm aryan4117/fitness-app || true
-          sudo docker run -d --name aryan4117/fitness-app -p 80:5000 $DOCKER_REPOSITORY:latest
+          sudo docker stop my-app || true
+          sudo docker rm my-app || true
+          sudo docker run -d --name my-app -p 80:5000 $DOCKER_REPOSITORY:latest
         EOF
