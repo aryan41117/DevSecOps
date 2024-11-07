@@ -1,4 +1,4 @@
-name: CI/CD Pipeline to EC2
+name: CI/CD Pipeline to EC2 with Docker Hub
 
 on:
   push:
@@ -32,25 +32,38 @@ jobs:
           echo "No tests directory found."
         fi
 
-    - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.EC2_KEY }}
+    - name: Configure SSH Key
+      run: |
+        echo "${{ secrets.EC2_KEY }}" > /tmp/ec2_key.pem
+        chmod 600 /tmp/ec2_key.pem
+
+    - name: Log in to Docker Hub
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: |
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
     - name: Deploy to EC2
       env:
         EC2_HOST: ${{ secrets.EC2_HOST }}
         EC2_USER: ${{ secrets.EC2_USER }}
+        DOCKER_REPOSITORY: ${{ secrets.DOCKER_REPOSITORY }}
       run: |
         echo "Deploying application to EC2 instance at $EC2_HOST"
-        ssh -t -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
-          # Pull latest code or clone if folder doesn't exist
-          cd /home/$EC2_USER/app || mkdir -p /home/$EC2_USER/app && cd /home/$EC2_USER/app
+        ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+          # Set up directory and pull latest code
+          cd /home/${EC2_USER:-ubuntu}/app || mkdir -p /home/${EC2_USER:-ubuntu}/app && cd /home/${EC2_USER:-ubuntu}/app
           git pull origin main
 
-          # Build and run Docker container
-          docker build -f Dockerfile.dockerfile -t my-app .
-          docker stop my-app || true
-          docker rm my-app || true
-          docker run -d --name my-app -p 80:5000 my-app
+          # Build Docker image
+          sudo docker build -f Dockerfile.dockerfile -t $DOCKER_REPOSITORY:latest .
+
+          # Push Docker image to Docker Hub
+          sudo docker push $DOCKER_REPOSITORY:latest
+
+          # Run Docker container
+          sudo docker stop my-app || true
+          sudo docker rm my-app || true
+          sudo docker run -d --name my-app -p 80:5000 $DOCKER_REPOSITORY:latest
         EOF
