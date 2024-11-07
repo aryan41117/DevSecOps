@@ -1,11 +1,8 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for, g
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
-from auth import get_db
-import matplotlib
+from models import get_db
 import matplotlib.pyplot as plt
 import os
-
-matplotlib.use('Agg')
 
 views = Blueprint('views', __name__)
 VIEWS_HOME = 'views.home'
@@ -15,11 +12,10 @@ def query_db(query, args=(), one=False):
     rv = cur.fetchall()
     cur.close()
     if one:
-        if rv:
-            return rv[0]
-        else:
-            return None
-    return rv
+        return rv[0] if rv else None
+    else:
+        return rv
+
 
 @views.route('/', methods=['GET', 'POST'])
 @login_required

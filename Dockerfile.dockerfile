@@ -17,5 +17,5 @@ EXPOSE 5000
 ENV FLASK_APP=__init__.py
 ENV FLASK_ENV=development
 
-# Run the command to start the app
-CMD ["flask", "run", "--host=0.0.0.0"]
+# Run the command to start the app with Gunicorn, specifying the module and factory function
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "__init__:create_app()"]

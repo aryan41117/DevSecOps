@@ -1,43 +1,54 @@
-from auth import get_db
-
 from flask_login import UserMixin
+import sqlite3
 
+DATABASE = 'fitness.db'
+
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row  # To return rows as dictionaries
+    return conn
+
+def create_tables():
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT UNIQUE NOT NULL,
+                    first_name TEXT NOT NULL,
+                    password TEXT NOT NULL
+                )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS Workout (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    activity TEXT NOT NULL,
+                    duration INTEGER,
+                    user_id INTEGER,
+                    FOREIGN KEY(user_id) REFERENCES users(id)
+                )''')
+    c.execute('''CREATE TABLE IF NOT EXISTS Goal (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    description TEXT,
+                    target INTEGER,
+                    user_id INTEGER,
+                    FOREIGN KEY(user_id) REFERENCES users(id)
+                )''')
+    conn.commit()
+    conn.close()
 
 class User(UserMixin):
-    def __init__(self, id, email, password, first_name):
+    def __init__(self, id, email, first_name, password):
         self.id = id
         self.email = email
-        self.password = password
         self.first_name = first_name
+        self.password = password
+        
 
-    @staticmethod
-    def get_user_by_email(email):
+    @classmethod
+    def get(cls, user_id):
         db = get_db()
-        user = db.execute("SELECT * FROM user WHERE email = ?", (email,)).fetchone()
-        return User(user['id'], user['email'], user['password'], user['first_name']) if user else None
+        user_data = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        if user_data:
+            return cls(user_data['id'], user_data['email'], user_data['first_name'], user_data['password'])
+        return None
 
-class Workout:
-    @staticmethod
-    def create(activity, duration, user_id):
-        db = get_db()
-        db.execute("INSERT INTO workout (activity, duration, user_id) VALUES (?, ?, ?)", 
-                   (activity, duration, user_id))
-        db.commit()
-
-    @staticmethod
-    def get_all_by_user(user_id):
-        db = get_db()
-        return db.execute("SELECT * FROM workout WHERE user_id = ?", (user_id,)).fetchall()
-
-class Goal:
-    @staticmethod
-    def create(description, target, user_id):
-        db = get_db()
-        db.execute("INSERT INTO goal (description, target, user_id) VALUES (?, ?, ?)", 
-                   (description, target, user_id))
-        db.commit()
-
-    @staticmethod
-    def get_all_by_user(user_id):
-        db = get_db()
-        return db.execute("SELECT * FROM goal WHERE user_id = ?", (user_id,)).fetchall()
+def query_user_by_id(user_id):
+    return User.get(user_id)
