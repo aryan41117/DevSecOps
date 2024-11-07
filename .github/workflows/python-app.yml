@@ -44,10 +44,10 @@ jobs:
       run: |
         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-    - name: Build Docker Image
+    - name: Build Docker Image (No Cache)
       run: |
-        # Specify the Dockerfile name with the -f flag
-        docker build -t my-flask-app -f Dockerfile.dockerfile .
+        # Build Docker image with the --no-cache flag to ensure latest code is used
+        docker build --no-cache -t ${{ secrets.DOCKER_REPOSITORY }}:latest -f Dockerfile.dockerfile .
 
     - name: Deploy to EC2
       env:
@@ -75,7 +75,7 @@ jobs:
             exit 1
           fi
 
-          # Pull the Docker image from Docker Hub
+          # Pull the latest Docker image from Docker Hub
           sudo docker pull "$DOCKER_REPOSITORY:latest"
 
           # Stop and remove any existing container named 'fitness-app' if it exists
