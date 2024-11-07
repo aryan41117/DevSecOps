@@ -37,13 +37,6 @@ jobs:
         echo "${{ secrets.EC2_KEY }}" > /tmp/ec2_key.pem
         chmod 600 /tmp/ec2_key.pem
 
-    - name: Log in to Docker Hub
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      run: |
-        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-
     - name: Deploy to EC2
       env:
         EC2_HOST: ${{ secrets.EC2_HOST }}
@@ -53,15 +46,9 @@ jobs:
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
         echo "Deploying application to EC2 instance at $EC2_HOST"
-        ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
+        ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << EOF
           # Log in to Docker Hub on the EC2 instance
           echo "$DOCKER_PASSWORD" | sudo docker login -u "$DOCKER_USERNAME" --password-stdin
-
-          # Check if DOCKER_REPOSITORY is set to avoid invalid reference errors
-          if [ -z "$DOCKER_REPOSITORY" ]; then
-            echo "Error: DOCKER_REPOSITORY is not set. Exiting."
-            exit 1
-          fi
 
           # Pull the Docker image from Docker Hub
           sudo docker pull "$DOCKER_REPOSITORY:latest"
@@ -74,4 +61,4 @@ jobs:
 
           # Run the Docker container with the pulled image
           sudo docker run -d --name fitness-app -p 80:5000 "$DOCKER_REPOSITORY:latest"
-        EOF
+EOF
