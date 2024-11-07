@@ -75,15 +75,16 @@ jobs:
             exit 1
           fi
 
-          # Pull the latest Docker image from Docker Hub
-          sudo docker pull "$DOCKER_REPOSITORY:latest"
+          # Force pull the latest Docker image from Docker Hub
+          sudo docker pull --quiet "$DOCKER_REPOSITORY:latest"
 
-          # Stop and remove any existing container named 'fitness-app' if it exists
+          # Stop and remove the old container if it exists
           if sudo docker ps -a --format '{{.Names}}' | grep -Eq '^fitness-app$'; then
+            echo "Stopping and removing the old container."
             sudo docker stop fitness-app
             sudo docker rm fitness-app
           fi
 
-          # Run the Docker container with the pulled image
+          # Run the Docker container with the latest image
           sudo docker run -d --name fitness-app -p 80:5000 "$DOCKER_REPOSITORY:latest"
         EOF
