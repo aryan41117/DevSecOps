@@ -49,11 +49,19 @@ jobs:
         EC2_HOST: ${{ secrets.EC2_HOST }}
         EC2_USER: ${{ secrets.EC2_USER }}
         DOCKER_REPOSITORY: ${{ secrets.DOCKER_REPOSITORY }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
         echo "Deploying application to EC2 instance at $EC2_HOST"
         ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
           # Log in to Docker Hub on the EC2 instance
           echo "$DOCKER_PASSWORD" | sudo docker login -u "$DOCKER_USERNAME" --password-stdin
+
+          # Check if DOCKER_REPOSITORY is set to avoid invalid reference errors
+          if [ -z "$DOCKER_REPOSITORY" ]; then
+            echo "Error: DOCKER_REPOSITORY is not set. Exiting."
+            exit 1
+          fi
 
           # Pull the Docker image from Docker Hub
           sudo docker pull "$DOCKER_REPOSITORY:latest"
