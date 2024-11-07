@@ -44,21 +44,10 @@ jobs:
       run: |
         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-    - name: Build and Push Docker image
-      env:
-        DOCKER_REPOSITORY: ${{ secrets.DOCKER_REPOSITORY }}
+    - name: Build Docker Image
       run: |
-        # Check if Dockerfile exists in the current directory
-        if [ ! -f Dockerfile ]; then
-          echo "Error: Dockerfile not found!"
-          exit 1
-        fi
-
-        # Build the Docker image with the latest code
-        docker build -t $DOCKER_REPOSITORY:latest .
-
-        # Push the Docker image to Docker Hub
-        docker push $DOCKER_REPOSITORY:latest
+        # Specify the Dockerfile name with the -f flag
+        docker build -t my-flask-app -f Dockerfile.dockerfile .
 
     - name: Deploy to EC2
       env:
