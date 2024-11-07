@@ -61,4 +61,4 @@ jobs:
 
           # Run the Docker container with the pulled image
           sudo docker run -d --name fitness-app -p 80:5000 "$DOCKER_REPOSITORY:latest"
-EOF
+EOF 
