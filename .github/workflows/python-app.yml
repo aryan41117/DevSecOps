@@ -45,6 +45,7 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
+        set -e  # Stop on error
         echo "Deploying application to EC2 instance at $EC2_HOST"
         ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST <<EOF
           # Log in to Docker Hub on the EC2 instance
