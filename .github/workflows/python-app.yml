@@ -52,18 +52,18 @@ jobs:
       run: |
         echo "Deploying application to EC2 instance at $EC2_HOST"
         ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST << 'EOF'
-          # Set up directory and pull latest code
-          cd /home/${EC2_USER:-ubuntu}/app || mkdir -p /home/${EC2_USER:-ubuntu}/app && cd /home/${EC2_USER:-ubuntu}/app
-          git pull origin main
+          # Log in to Docker Hub on the EC2 instance
+          echo "$DOCKER_PASSWORD" | sudo docker login -u "$DOCKER_USERNAME" --password-stdin
 
-          # Build Docker image
-          sudo docker build -f Dockerfile.dockerfile -t $DOCKER_REPOSITORY:latest .
+          # Pull the Docker image from Docker Hub
+          sudo docker pull "$DOCKER_REPOSITORY:latest"
 
-          # Push Docker image to Docker Hub
-          sudo docker push $DOCKER_REPOSITORY:latest
+          # Stop and remove any existing container named 'fitness-app' if it exists
+          if sudo docker ps -a --format '{{.Names}}' | grep -Eq '^fitness-app$'; then
+            sudo docker stop fitness-app
+            sudo docker rm fitness-app
+          fi
 
-          # Run Docker container
-          sudo docker stop my-app || true
-          sudo docker rm my-app || true
-          sudo docker run -d --name my-app -p 80:5000 $DOCKER_REPOSITORY:latest
+          # Run the Docker container with the pulled image
+          sudo docker run -d --name fitness-app -p 80:5000 "$DOCKER_REPOSITORY:latest"
         EOF
