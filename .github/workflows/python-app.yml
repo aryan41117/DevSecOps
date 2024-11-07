@@ -46,8 +46,13 @@ jobs:
 
     - name: Build Docker Image (No Cache)
       run: |
-        # Build Docker image with the --no-cache flag to ensure latest code is used
+        # Build Docker image with the --no-cache flag to ensure the latest code is used
         docker build --no-cache -t ${{ secrets.DOCKER_REPOSITORY }}:latest -f Dockerfile.dockerfile .
+
+    - name: Push Docker Image to Docker Hub
+      run: |
+        # Push the Docker image to Docker Hub
+        docker push ${{ secrets.DOCKER_REPOSITORY }}:latest
 
     - name: Deploy to EC2
       env:
