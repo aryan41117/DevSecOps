@@ -91,5 +91,5 @@ jobs:
           fi
 
           # Run the Docker container with the latest image
-          sudo docker run -d --name fitness-app -p 80:5000 "$DOCKER_REPOSITORY:latest"
+          sudo docker run -d --name fitness-app -p 5000:5000 "$DOCKER_REPOSITORY:latest"
         EOF
