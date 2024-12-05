@@ -25,8 +25,7 @@ jobs:
         # Download and extract SonarQube Scanner
         curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
         unzip sonar-scanner-cli.zip -d $HOME
-        export PATH="$HOME/sonar-scanner-4.8.0.2856-linux/bin:$PATH"
-        echo "export PATH=$HOME/sonar-scanner-4.8.0.2856-linux/bin:\$PATH" >> $GITHUB_ENV
+        echo "$HOME/sonar-scanner-4.8.0.2856-linux/bin" >> $GITHUB_PATH
         sonar-scanner --version # Verify installation
 
     - name: Run SonarQube Analysis
