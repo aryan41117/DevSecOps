@@ -8,6 +8,7 @@
       {{ workout.activity }} - {{ workout.duration }} min
       <!-- Delete button for each workout -->
       <form action="{{ url_for('views.delete_workout', id=workout.id) }}" method="POST" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
       </form>
     </li>
@@ -16,6 +17,8 @@
 
 <h2>Add Strength Training Activity</h2>
 <form method="POST">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="form-group">
     <label for="activity">Workout Type</label>
     <input type="text" class="form-control" id="activity" name="activity" placeholder="Enter activity" required />
@@ -36,6 +39,7 @@
         Goal: {{ goal.description }} - Target: {{ goal.target }} minutes
         <!-- Delete button for each goal -->
         <form action="{{ url_for('views.delete_goal', id=goal.id) }}" method="POST" style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-danger btn-sm">Delete</button>
         </form>
       </li>
@@ -48,6 +52,7 @@
 
 <h2>Set Cardio Goal</h2>
 <form method="POST" action="{{ url_for('views.set_goal') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="form-group">
     <label for="description">Goal Description</label>
     <input type="text" class="form-control" id="description" name="description" placeholder="Enter goal description" required />
