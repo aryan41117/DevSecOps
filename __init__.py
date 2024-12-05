@@ -2,11 +2,8 @@ from flask import Flask, g
 from flask_login import LoginManager
 import sqlite3
 from models import create_tables, query_user_by_id
-from flask_wtf.csrf import CSRFProtect
 
 DATABASE = 'fitness.db'
-
-csrf = CSRFProtect()
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -18,7 +15,7 @@ def create_app():
     app = Flask(__name__)
     # Set the secret key for session management and security
     app.config.from_pyfile('config.py')
-    csrf.init_app(app)
+    
 
     from auth import auth
     from views import views

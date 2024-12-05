@@ -2,13 +2,11 @@ from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import get_db, User
-from flask_wtf.csrf import CSRFProtect
 
 auth = Blueprint('auth', __name__)
-csrf = CSRFProtect()
+
 
 @auth.route('/login', methods=['GET', 'POST'])
-@csrf.exempt
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -28,7 +26,6 @@ def login():
     return render_template("login.html", user=current_user)
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
-@csrf.exempt
 def sign_up():
     if request.method == 'POST':
         email = request.form.get('email')
