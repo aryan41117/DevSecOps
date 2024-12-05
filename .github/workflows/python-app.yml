@@ -18,7 +18,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: '17' # Upgrade to Java 17
+        java-version: '17' # Use Java 17 for compatibility
 
     - name: Install Sonar Scanner
       run: |
@@ -26,8 +26,15 @@ jobs:
         curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
         unzip sonar-scanner-cli.zip -d $HOME
         export PATH="$HOME/sonar-scanner-4.8.0.2856-linux/bin:$PATH" # Add scanner to PATH
-        echo "PATH=$PATH" >> $GITHUB_ENV # Persist PATH for later steps
+        echo "PATH=$HOME/sonar-scanner-4.8.0.2856-linux/bin:$PATH" >> $GITHUB_ENV # Persist PATH for later steps
         sonar-scanner --version # Verify installation
+      shell: bash
+
+    - name: Verify Java Version
+      run: |
+        java -version # Confirm Java 17 is being used
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV # Persist JAVA_HOME for SonarScanner
+        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
 
     - name: Run SonarQube Analysis
       env:
