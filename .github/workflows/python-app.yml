@@ -1,4 +1,4 @@
-name: CI/CD Pipeline to EC2 with SonarQube and Docker Hub
+name: CI/CD Pipeline with SonarQube and Docker
 
 on:
   push:
@@ -25,8 +25,8 @@ jobs:
         # Download and extract SonarQube Scanner
         curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
         unzip sonar-scanner-cli.zip -d $HOME
-        echo "export PATH=$HOME/sonar-scanner-4.8.0.2856-linux/bin:$PATH" >> $HOME/.bashrc
-        source $HOME/.bashrc
+        export PATH="$HOME/sonar-scanner-4.8.0.2856-linux/bin:$PATH"
+        echo "export PATH=$HOME/sonar-scanner-4.8.0.2856-linux/bin:\$PATH" >> $GITHUB_ENV
         sonar-scanner --version # Verify installation
 
     - name: Run SonarQube Analysis
@@ -40,7 +40,7 @@ jobs:
           -Dsonar.host.url=$SONAR_HOST_URL \
           -Dsonar.login=$SONAR_TOKEN
 
-    - name: Install Python Dependencies
+    - name: Install Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
@@ -70,14 +70,12 @@ jobs:
       run: |
         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
-    - name: Build Docker Image (No Cache)
+    - name: Build Docker Image
       run: |
-        # Build Docker image with the --no-cache flag to ensure the latest code is used
-        docker build --no-cache -t ${{ secrets.DOCKER_REPOSITORY }}:latest -f Dockerfile.dockerfile .
+        docker build --no-cache -t ${{ secrets.DOCKER_REPOSITORY }}:latest -f Dockerfile .
 
     - name: Push Docker Image to Docker Hub
       run: |
-        # Push the Docker image to Docker Hub
         docker push ${{ secrets.DOCKER_REPOSITORY }}:latest
 
     - name: Deploy to EC2
@@ -88,34 +86,15 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
-        echo "Deploying application to EC2 instance at $EC2_HOST"
-        
-        # Pass the environment variables directly in the SSH command
         ssh -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST <<EOF
-          # Export the Docker environment variables
           export DOCKER_REPOSITORY="$DOCKER_REPOSITORY"
           export DOCKER_USERNAME="$DOCKER_USERNAME"
           export DOCKER_PASSWORD="$DOCKER_PASSWORD"
-
-          # Log in to Docker Hub on the EC2 instance
           echo "$DOCKER_PASSWORD" | sudo docker login -u "$DOCKER_USERNAME" --password-stdin
-
-          # Check if DOCKER_REPOSITORY is set to avoid invalid reference errors
-          if [ -z "$DOCKER_REPOSITORY" ]; then
-            echo "Error: DOCKER_REPOSITORY is not set. Exiting."
-            exit 1
+          sudo docker pull "$DOCKER_REPOSITORY:latest"
+          if sudo docker ps -a --format '{{.Names}}' | grep -Eq '^app-container$'; then
+            sudo docker stop app-container
+            sudo docker rm app-container
           fi
-
-          # Force pull the latest Docker image from Docker Hub
-          sudo docker pull --quiet "$DOCKER_REPOSITORY:latest"
-
-          # Stop and remove the old container if it exists
-          if sudo docker ps -a --format '{{.Names}}' | grep -Eq '^fitness-app$'; then
-            echo "Stopping and removing the old container."
-            sudo docker stop fitness-app
-            sudo docker rm fitness-app
-          fi
-
-          # Run the Docker container with the latest image
-          sudo docker run -d --name fitness-app -p 80:5000 "$DOCKER_REPOSITORY:latest"
+          sudo docker run -d --name app-container -p 80:5000 "$DOCKER_REPOSITORY:latest"
         EOF
