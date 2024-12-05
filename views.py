@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user
+from flask_wtf import CSRFProtect
 from models import get_db
 import matplotlib.pyplot as plt
 import os
 
 views = Blueprint('views', __name__)
 VIEWS_HOME = 'views.home'
+csrf = CSRFProtect()
 
 def query_db(query, args=(), one=False):
     cur = get_db().execute(query, args)
@@ -19,6 +21,7 @@ def query_db(query, args=(), one=False):
 
 @views.route('/', methods=['GET', 'POST'])
 @login_required
+@csrf.exempt
 def home():
     if request.method == 'POST':
         activity = request.form.get('activity')
@@ -49,6 +52,7 @@ def home():
 
 @views.route('/delete_workout/<int:id>', methods=['POST'])
 @login_required
+@csrf.exempt
 def delete_workout(id):
     db = get_db()
     db.execute("DELETE FROM Workout WHERE id = ? AND user_id = ?", (id, current_user.id))
@@ -58,6 +62,7 @@ def delete_workout(id):
 
 @views.route('/set-goal', methods=['POST'])
 @login_required
+@csrf.exempt
 def set_goal():
     description = request.form.get('description')
     try:
@@ -75,6 +80,7 @@ def set_goal():
 
 @views.route('/delete_goal/<int:id>', methods=['POST'])
 @login_required
+@csrf.exempt
 def delete_goal(id):
     db = get_db()
     db.execute("DELETE FROM Goal WHERE id = ? AND user_id = ?", (id, current_user.id))
